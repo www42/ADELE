@@ -12,4 +12,5 @@ Publish-Module -Path $Dir -Repository $Repo -NuGetApiKey $NuGetApiKey
 #Install-Module -Name $ModuleName -Repository $Repo
 
 Update-Module -Name $ModuleName
-Get-Module -Name $ModuleName -ListAvailable | fl Name,Version,ModuleBase
+Import-Module -Name $ModuleName -Force
+Get-Module -Name $ModuleName | fl Name,Version,ModuleBase
