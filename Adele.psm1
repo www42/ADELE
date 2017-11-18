@@ -246,3 +246,4 @@ Write-Host -ForegroundColor DarkCyan "Join Domain...............................
 #endregion
 
 }
+function New-AdeleNVHost {}
