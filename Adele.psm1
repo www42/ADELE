@@ -1,6 +1,6 @@
 ﻿function New-AdeleDomainController {
   #region Parameters
-    [CmdletBinding()]Param(
+[CmdletBinding()]Param(
 [Parameter(Mandatory=$true,  Position=1)][string]$VmComputerName,
 [Parameter(Mandatory=$true,  Position=2)][string]$IpAddress,
 [Parameter(Mandatory=$false, Position=3)][string]$PrefixLength    = $Global:LabIpPrefixLength,
@@ -12,7 +12,6 @@
 )
   #endregion
   #region Variables
-    Write-Host -ForegroundColor $ForegroundColor "Variables                                          "
     $ForegroundColor = "DarkCyan"
     $IfAlias   = "Ethernet"
     $VmName    = ConvertTo-VmName -VmComputerName $VmComputerName -Lab $Lab
@@ -32,30 +31,31 @@
     $DhcpDnsServer  = "10.80.0.10"
     $DhcpRouter     = "10.80.0.1"
     
-    Write-Host -ForegroundColor $ForegroundColor "Variables.................................... done."
+    Write-Host -ForegroundColor $ForegroundColor "Variables                                          " -NoNewline
+    Write-Host -ForegroundColor $ForegroundColor ".... done."
   #endregion
   #region Create VM
-    Write-Host -ForegroundColor $ForegroundColor "Create VM                                          "
+    Write-Host -ForegroundColor $ForegroundColor "Create VM                                          " -NoNewline
     New-LabVmDifferencing -VmComputerName $VmComputerName
     Start-LabVm -VmComputerName $VmComputerName
     
     # Wait for specialize and oobe
     Start-Sleep -Seconds 180
     
-    Write-Host -ForegroundColor $ForegroundColor "Create VM.................................... done."
+    Write-Host -ForegroundColor $ForegroundColor ".... done."
   #endregion
   #region Rename and configure static IP address
-    Write-Host -ForegroundColor $ForegroundColor "Rename and configure static IP address             "
+    Write-Host -ForegroundColor $ForegroundColor "Rename and configure static IP address             " -NoNewline
     Invoke-Command -VMName $VmName -Credential $LocalCred {
     New-NetIPAddress -InterfaceAlias $Using:IfAlias -IPAddress $Using:IpAddress -PrefixLength $Using:PrefixLength -DefaultGateway $Using:DefaultGw | Out-Null
     Rename-Computer -NewName $Using:VmComputerName -Restart
     }
     # Wait for reboot
     Start-Sleep -Seconds 60
-    Write-Host -ForegroundColor $ForegroundColor "Rename and configure static IP address....... done."
+    Write-Host -ForegroundColor $ForegroundColor ".... done."
   #endregion
   #region Dcpromo New Forest
-    Write-Host -ForegroundColor $ForegroundColor "Dcpromo New Forest                                 "
+    Write-Host -ForegroundColor $ForegroundColor "Dcpromo New Forest                                 " -NoNewline
     Invoke-Command -VMName $VmName -Credential $LocalCred {
     $SecureModePW=ConvertTo-SecureString -String $using:Pw -AsPlainText -Force
     Install-WindowsFeature -Name AD-Domain-Services -IncludeManagementTools | Out-Null
@@ -76,20 +76,20 @@
         -WarningAction Ignore | Out-Null
     }
     Start-Sleep -Seconds 360
-    Write-Host -ForegroundColor $ForegroundColor "Dcpromo New Forest........................... done."
+    Write-Host -ForegroundColor $ForegroundColor ".... done."
   #endregion
   #region Configure DNS Server
-    Write-Host -ForegroundColor $ForegroundColor "Configure DNS Server                               "
+    Write-Host -ForegroundColor $ForegroundColor "Configure DNS Server                               " -NoNewline
     Invoke-Command -VMName $VmName -Credential $DomCred {   
       Add-DnsServerPrimaryZone -NetworkId $using:NetworkId -ReplicationScope Domain -DynamicUpdate Secure
       Add-DnsServerResourceRecordPtr -ZoneName $using:ZoneName -Name $using:Name -PtrDomainName $using:PtrDomainName
       Add-DnsServerForwarder -IPAddress 8.8.8.8
       Remove-DnsServerForwarder -IPAddress fec0:0:0:ffff::1,fec0:0:0:ffff::2,fec0:0:0:ffff::3 -Force
     }
-    Write-Host -ForegroundColor $ForegroundColor "Configure DNS Server......................... done."
+    Write-Host -ForegroundColor $ForegroundColor ".... done."
   #endregion
   #region Install and configure DHCP Server
-    Write-Host -ForegroundColor $ForegroundColor "Install and configure DHCP Server                  "
+    Write-Host -ForegroundColor $ForegroundColor "Install and configure DHCP Server                  " -NoNewline
     Invoke-Command -VMName $VmName -Credential $DomCred {
 
     Install-WindowsFeature -Name DHCP -IncludeManagementTools | Out-Null
@@ -113,10 +113,10 @@
         Set-DhcpServerv4OptionValue -DnsServer $using:DhcpDnsServer `
                                     -Router $using:DhcpRouter
     }
-    Write-Host -ForegroundColor $ForegroundColor "Install and configure DHCP Server............ done."
+    Write-Host -ForegroundColor $ForegroundColor ".... done."
   #endregion
   #region Disable IE Enhanced Security Configuration
-    Write-Host -ForegroundColor $ForegroundColor "Disable IE Enhanced Security Configuration         "
+    Write-Host -ForegroundColor $ForegroundColor "Disable IE Enhanced Security Configuration         " -NoNewline
     Invoke-Command -VMName $VmName -Credential $DomCred {
     $ESCAdminKey = "HKLM:\SOFTWARE\Microsoft\Active Setup\Installed Components\{A509B1A7-37EF-4b3f-8CFC-4F3A74704073}"
     $ESCUserKey  = "HKLM:\SOFTWARE\Microsoft\Active Setup\Installed Components\{A509B1A8-37EF-4b3f-8CFC-4F3A74704073}"
@@ -124,32 +124,30 @@
     Set-ItemProperty -Path $ESCUserKey  -Name "IsInstalled" -Value 0
     Stop-Process -Name Explorer -ErrorAction SilentlyContinue
     }
-    Write-Host -ForegroundColor $ForegroundColor "Disable IE Enhanced Security Configuration... done."
+    Write-Host -ForegroundColor $ForegroundColor ".... done."
   #endregion
   #region Ensure FW Domain Profile
-    Write-Host -ForegroundColor $ForegroundColor "Ensure FW Domain Profile                           "
+    Write-Host -ForegroundColor $ForegroundColor "Ensure FW Domain Profile                           " -NoNewline
     Invoke-Command -VMName $VmName -Credential $DomCred {
     Disable-NetAdapter -Name $using:IfAlias -Confirm:$false
     Enable-NetAdapter -Name $using:IfAlias
     Start-Sleep -Seconds 10
 }
-    Write-Host -ForegroundColor $ForegroundColor "Ensure FW Domain Profile..................... done."
-  #endregion
+    Write-Host -ForegroundColor $ForegroundColor ".... done."
   #region Password never expires
-    Write-Host -ForegroundColor $ForegroundColor "Install Adatum CA                                  "
+    Write-Host -ForegroundColor $ForegroundColor "Install Adatum CA                                  " -NoNewline
     Invoke-Command -VMName $VmName -Credential $DomCred {
     Set-ADUser -Identity Administrator -PasswordNeverExpires $true
 }
-    
-    Write-Host -ForegroundColor DarkCyan "Password never expires....................... done."
+    Write-Host -ForegroundColor $ForegroundColor ".... done."
   #endregion
   #region Install Adatum CA
-    Write-Host -ForegroundColor $ForegroundColor "Install Adatum CA                                  "
+    Write-Host -ForegroundColor $ForegroundColor "Install Adatum CA                                  " -NoNewline
     Invoke-Command -VMName $VmName -Credential $DomCred {
     Install-WindowsFeature -Name ADCS-Cert-Authority -IncludeManagementTools | Out-Null
     Install-AdcsCertificationAuthority -CACommonName "Adatum CA" -CAType EnterpriseRootCA -Force | Out-Null
 }
-    Write-Host -ForegroundColor $ForegroundColor "Install Adatum CA............................ done."
+    Write-Host -ForegroundColor $ForegroundColor ".... done."
   #endregion
 }
 function New-AdeleMemberServer {
@@ -165,25 +163,25 @@ function New-AdeleMemberServer {
     )
   #endregion
   #region Variables
-    Write-Host -ForegroundColor $ForegroundColor "Variables                                          "
     $ForegroundColor = "DarkCyan"
     $IfAlias   = "Ethernet"
     $VmName    = ConvertTo-VmName -VmComputerName $VmComputerName -Lab $Lab
     $LocalCred = New-Object System.Management.Automation.PSCredential        "Administrator",(ConvertTo-SecureString $Pw -AsPlainText -Force)
     $DomCred   = New-Object System.Management.Automation.PSCredential "Adatum\Administrator",(ConvertTo-SecureString $Pw -AsPlainText -Force)
-    Write-Host -ForegroundColor $ForegroundColor "Variables.................................... done."
+    Write-Host -ForegroundColor $ForegroundColor "   Variables                                    " -NoNewline
+    Write-Host -ForegroundColor $ForegroundColor ".... done."
   #endregion
   #region Create VM
-    Write-Host -ForegroundColor $ForegroundColor "Create VM                                          "
+    Write-Host -ForegroundColor $ForegroundColor "   Create VM                                    " -NoNewline
     New-LabVmDifferencing -VmComputerName $VmComputerName 
     Start-LabVm -VmComputerName $VmComputerName
     
     # Wait for specialize and oobe to complete
     Start-Sleep -Seconds 180
-    Write-Host -ForegroundColor $ForegroundColor "Create VM.................................... done."
+    Write-Host -ForegroundColor $ForegroundColor ".... done."
   #endregion
   #region Rename and IP configuration
-    Write-Host -ForegroundColor $ForegroundColor "Rename and IP configuration                        "
+    Write-Host -ForegroundColor $ForegroundColor "   Rename and IP configuration                  " -NoNewline
     Invoke-Command -VMName $VmName -Credential $LocalCred {
     New-NetIPAddress -InterfaceAlias $Using:IfAlias -IPAddress $Using:IpAddress -PrefixLength $Using:PrefixLength -DefaultGateway $Using:DefaultGw | Out-Null
     Set-DnsClientServerAddress -InterfaceAlias $Using:IfAlias -ServerAddresses $Using:DnsServer  | Out-Null
@@ -191,17 +189,17 @@ function New-AdeleMemberServer {
     } 
     # Wait for reboot
     Start-Sleep -Seconds 60
-    Write-Host -ForegroundColor $ForegroundColor "Rename and IP configuration.................. done."
+    Write-Host -ForegroundColor $ForegroundColor ".... done."
   #endregion
-   #region Join Domain
-    Write-Host -ForegroundColor $ForegroundColor "Join Domain                                        "
+  #region Join Domain
+    Write-Host -ForegroundColor $ForegroundColor "   Join Domain                                  " -NoNewline
     Invoke-Command -VMName $VmName -Credential $LocalCred {
 
     Add-Computer -DomainName $Using:AdDomain -Credential $Using:DomCred -Restart
     
     }
     Start-Sleep -Seconds 60
-    Write-Host -ForegroundColor $ForegroundColor "Join Domain.................................. done."
+    Write-Host -ForegroundColor $ForegroundColor ".... done."
   #endregion
 }
 function New-AdeleNVHost {
@@ -209,21 +207,23 @@ function New-AdeleNVHost {
   [CmdletBinding()]Param(
   [Parameter(Mandatory=$true,  Position=1)][string]$VmComputerName,
   [Parameter(Mandatory=$true,  Position=2)][string]$IpAddress,
-  [Parameter(Mandatory=$false, Position=3)][string]$PrefixLength = $Global:LabIpPrefixLength,
-  [Parameter(Mandatory=$false, Position=4)][string]$DefaultGw    = $Global:LabIpDefaultGw,
-  [Parameter(Mandatory=$false, Position=5)][string]$DnsServer    = $Global:LabIpDnsServer,
-  [Parameter(Mandatory=$false, Position=6)][string]$AdDomain     = $Global:LabAdDomain,
-  [Parameter(Mandatory=$false, Position=7)][string]$Pw           = $Global:LabPw
+  [Parameter(Mandatory=$false, Position=3)][string]$PrefixLength    = $Global:LabIpPrefixLength,
+  [Parameter(Mandatory=$false, Position=4)][string]$DefaultGw       = $Global:LabIpDefaultGw,
+  [Parameter(Mandatory=$false, Position=5)][string]$DnsServer       = $Global:LabIpDnsServer,
+  [Parameter(Mandatory=$false, Position=6)][string]$AdDomain        = $Global:LabAdDomain,
+  [Parameter(Mandatory=$false, Position=7)][string]$AdDomainNetBios = $Global:LabAdDomainNetBios,
+  [Parameter(Mandatory=$false, Position=8)][string]$Pw              = $Global:LabPw
   )
   #endregion
   #region Variables
-    Write-Host -ForegroundColor $ForegroundColor "Variables                                          "
     $VmName    = ConvertTo-VmName -VmComputerName $VmComputerName -Lab $Lab
+    $DomCred   = New-Object System.Management.Automation.PSCredential "Adatum\Administrator",(ConvertTo-SecureString $Pw -AsPlainText -Force)
     $ForegroundColor = "DarkYellow"
-    Write-Host -ForegroundColor $ForegroundColor "Variables.................................... done."
+    Write-Host -ForegroundColor $ForegroundColor "Variables                                       " -NoNewline
+    Write-Host -ForegroundColor $ForegroundColor ".... done."
   #endregion
   #region New MemberServer
-    Write-Host -ForegroundColor $ForegroundColor "New MemberServer                                   "
+    Write-Host -ForegroundColor $ForegroundColor "New Member Server                                  "
     New-AdeleMemberServer -VmComputerName $VmComputerName `
                           -IpAddress $IpAddress `
                           -PrefixLength $PrefixLength `
@@ -231,10 +231,9 @@ function New-AdeleNVHost {
                           -DnsServer $DnsServer `
                           -AdDomain $AdDomain `
                           -Pw $Pw
-    Write-Host -ForegroundColor $ForegroundColor "New MemberServer............................. done."
   #endregion
   #region Preparing for Nested Virtualization
-    Write-Host -ForegroundColor $ForegroundColor "Preparing for Nested Virtualization                "
+    Write-Host -ForegroundColor $ForegroundColor "Preparing for Nested Virtualization             " -NoNewline
     Stop-LabVm -VmComputerName $VmComputerName
     
     Set-VMProcessor -VMName $VmName -ExposeVirtualizationExtensions:$true
@@ -242,6 +241,31 @@ function New-AdeleNVHost {
     Set-VMNetworkAdapter -VMName $VmName -MacAddressSpoofing On
     
     Start-LabVm -VmComputerName $VmComputerName
-    Write-Host -ForegroundColor $ForegroundColor "Preparing for Nested Virtualization.......... done."
+    Start-Sleep -Seconds 60
+    Write-Host -ForegroundColor $ForegroundColor ".... done."
+  #endregion
+  #region Installing Hyper-V
+    Write-Host -ForegroundColor $ForegroundColor "Installing Hyper-V                              " -NoNewline
+    Invoke-Command -VMName $VmName -Credential $DomCred {
+      Install-WindowsFeature -Name Hyper-V -IncludeManagementTools -Restart -WarningAction SilentlyContinue | Out-Null
+    }
+    Start-Sleep -Seconds 60
+    Invoke-Command -VMName $VmName -Credential $DomCred {
+       $NetAdapter = Get-NetAdapter
+       New-VMSwitch -Name "External Network" -NetAdapterName $NetAdapter.Name | Out-Null
+    }
+    Write-Host -ForegroundColor $ForegroundColor ".... done."
+  #endregion
+  #region Copy Base vhdx
+    Write-Host -ForegroundColor $ForegroundColor "Copy Base vhdx                                  " -NoNewline
+    Invoke-Command -VMName $VmName -Credential $DomCred {
+        Enable-NetFirewallRule -Name FPS-SMB-In-TCP
+        New-Item -ItemType Directory -Path c:\Base | Out-Null
+    }
+    
+    New-SmbMapping -LocalPath x: -RemotePath "\\$IpAddress\c$" -UserName "$AdDomainNetBios\administrator" -Password $Pw | Out-Null
+    Copy-Item -Path $LabBaseGen2 -Destination x:\Base
+    Remove-SmbMapping -LocalPath x: -Force
+    Write-Host -ForegroundColor $ForegroundColor ".... done."
   #endregion
 }
