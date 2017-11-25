@@ -31,11 +31,11 @@
     $DhcpDnsServer  = "10.80.0.10"
     $DhcpRouter     = "10.80.0.1"
     
-    Write-Host -ForegroundColor $ForegroundColor "Variables                                          " -NoNewline
+    Write-Host -ForegroundColor $ForegroundColor "   Variables                                       " -NoNewline
     Write-Host -ForegroundColor $ForegroundColor ".... done."
   #endregion
   #region Create VM
-    Write-Host -ForegroundColor $ForegroundColor "Create VM                                          " -NoNewline
+    Write-Host -ForegroundColor $ForegroundColor "   Create VM                                       " -NoNewline
     New-LabVmDifferencing -VmComputerName $VmComputerName
     Start-LabVm -VmComputerName $VmComputerName
     
@@ -45,7 +45,7 @@
     Write-Host -ForegroundColor $ForegroundColor ".... done."
   #endregion
   #region Rename and configure static IP address
-    Write-Host -ForegroundColor $ForegroundColor "Rename and configure static IP address             " -NoNewline
+    Write-Host -ForegroundColor $ForegroundColor "   Rename and configure static IP address          " -NoNewline
     Invoke-Command -VMName $VmName -Credential $LocalCred {
     New-NetIPAddress -InterfaceAlias $Using:IfAlias -IPAddress $Using:IpAddress -PrefixLength $Using:PrefixLength -DefaultGateway $Using:DefaultGw | Out-Null
     Rename-Computer -NewName $Using:VmComputerName -Restart
@@ -55,7 +55,7 @@
     Write-Host -ForegroundColor $ForegroundColor ".... done."
   #endregion
   #region Dcpromo New Forest
-    Write-Host -ForegroundColor $ForegroundColor "Dcpromo New Forest                                 " -NoNewline
+    Write-Host -ForegroundColor $ForegroundColor "   Dcpromo New Forest                              " -NoNewline
     Invoke-Command -VMName $VmName -Credential $LocalCred {
     $SecureModePW=ConvertTo-SecureString -String $using:Pw -AsPlainText -Force
     Install-WindowsFeature -Name AD-Domain-Services -IncludeManagementTools | Out-Null
@@ -79,7 +79,7 @@
     Write-Host -ForegroundColor $ForegroundColor ".... done."
   #endregion
   #region Configure DNS Server
-    Write-Host -ForegroundColor $ForegroundColor "Configure DNS Server                               " -NoNewline
+    Write-Host -ForegroundColor $ForegroundColor "   Configure DNS Server                            " -NoNewline
     Invoke-Command -VMName $VmName -Credential $DomCred {   
       Add-DnsServerPrimaryZone -NetworkId $using:NetworkId -ReplicationScope Domain -DynamicUpdate Secure
       Add-DnsServerResourceRecordPtr -ZoneName $using:ZoneName -Name $using:Name -PtrDomainName $using:PtrDomainName
@@ -89,7 +89,7 @@
     Write-Host -ForegroundColor $ForegroundColor ".... done."
   #endregion
   #region Install and configure DHCP Server
-    Write-Host -ForegroundColor $ForegroundColor "Install and configure DHCP Server                  " -NoNewline
+    Write-Host -ForegroundColor $ForegroundColor "   Install and configure DHCP Server               " -NoNewline
     Invoke-Command -VMName $VmName -Credential $DomCred {
 
     Install-WindowsFeature -Name DHCP -IncludeManagementTools | Out-Null
@@ -116,7 +116,7 @@
     Write-Host -ForegroundColor $ForegroundColor ".... done."
   #endregion
   #region Disable IE Enhanced Security Configuration
-    Write-Host -ForegroundColor $ForegroundColor "Disable IE Enhanced Security Configuration         " -NoNewline
+    Write-Host -ForegroundColor $ForegroundColor "   Disable IE Enhanced Security Configuration      " -NoNewline
     Invoke-Command -VMName $VmName -Credential $DomCred {
     $ESCAdminKey = "HKLM:\SOFTWARE\Microsoft\Active Setup\Installed Components\{A509B1A7-37EF-4b3f-8CFC-4F3A74704073}"
     $ESCUserKey  = "HKLM:\SOFTWARE\Microsoft\Active Setup\Installed Components\{A509B1A8-37EF-4b3f-8CFC-4F3A74704073}"
@@ -127,7 +127,7 @@
     Write-Host -ForegroundColor $ForegroundColor ".... done."
   #endregion
   #region Ensure FW Domain Profile
-    Write-Host -ForegroundColor $ForegroundColor "Ensure FW Domain Profile                           " -NoNewline
+    Write-Host -ForegroundColor $ForegroundColor "   Ensure FW Domain Profile                        " -NoNewline
     Invoke-Command -VMName $VmName -Credential $DomCred {
     Disable-NetAdapter -Name $using:IfAlias -Confirm:$false
     Enable-NetAdapter -Name $using:IfAlias
@@ -135,14 +135,14 @@
 }
     Write-Host -ForegroundColor $ForegroundColor ".... done."
   #region Password never expires
-    Write-Host -ForegroundColor $ForegroundColor "Install Adatum CA                                  " -NoNewline
+    Write-Host -ForegroundColor $ForegroundColor "   Password never expires                          " -NoNewline
     Invoke-Command -VMName $VmName -Credential $DomCred {
     Set-ADUser -Identity Administrator -PasswordNeverExpires $true
 }
     Write-Host -ForegroundColor $ForegroundColor ".... done."
   #endregion
   #region Install Adatum CA
-    Write-Host -ForegroundColor $ForegroundColor "Install Adatum CA                                  " -NoNewline
+    Write-Host -ForegroundColor $ForegroundColor "   Install Adatum CA                               " -NoNewline
     Invoke-Command -VMName $VmName -Credential $DomCred {
     Install-WindowsFeature -Name ADCS-Cert-Authority -IncludeManagementTools | Out-Null
     Install-AdcsCertificationAuthority -CACommonName "Adatum CA" -CAType EnterpriseRootCA -Force | Out-Null
