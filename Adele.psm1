@@ -264,6 +264,7 @@ function New-AdeleNVHost {
     }
     
     New-SmbMapping -LocalPath x: -RemotePath "\\$IpAddress\c$" -UserName "$AdDomainNetBios\administrator" -Password $Pw | Out-Null
+    Start-Sleep -Seconds 30
     Copy-Item -Path $LabBaseGen2 -Destination x:\Base
     Remove-SmbMapping -LocalPath x: -Force
     Write-Host -ForegroundColor $ForegroundColor ".... done."
