@@ -44,14 +44,11 @@
     
     Write-Host -ForegroundColor $ForegroundColor ".... done."
   #endregion
-  #region Rename and configure static IP address
-    Write-Host -ForegroundColor $ForegroundColor "   Rename and configure static IP address       " -NoNewline
+  #region Configure static IP address
+    Write-Host -ForegroundColor $ForegroundColor "   Configure static IP address                  " -NoNewline
     Invoke-Command -VMName $VmName -Credential $LocalCred {
     New-NetIPAddress -InterfaceAlias $Using:IfAlias -IPAddress $Using:IpAddress -PrefixLength $Using:PrefixLength -DefaultGateway $Using:DefaultGw | Out-Null
-    Rename-Computer -NewName $Using:VmComputerName -Restart
     }
-    # Wait for reboot
-    Start-Sleep -Seconds 60
     Write-Host -ForegroundColor $ForegroundColor ".... done."
   #endregion
   #region Dcpromo New Forest
@@ -181,11 +178,10 @@ function New-AdeleMemberServer {
     Write-Host -ForegroundColor $ForegroundColor ".... done."
   #endregion
   #region Rename and IP configuration
-    Write-Host -ForegroundColor $ForegroundColor "   Rename and IP configuration                  " -NoNewline
+    Write-Host -ForegroundColor $ForegroundColor "   Configure static IP address                  " -NoNewline
     Invoke-Command -VMName $VmName -Credential $LocalCred {
     New-NetIPAddress -InterfaceAlias $Using:IfAlias -IPAddress $Using:IpAddress -PrefixLength $Using:PrefixLength -DefaultGateway $Using:DefaultGw | Out-Null
     Set-DnsClientServerAddress -InterfaceAlias $Using:IfAlias -ServerAddresses $Using:DnsServer  | Out-Null
-    Rename-Computer -NewName $Using:VmComputerName -Restart
     } 
     # Wait for reboot
     Start-Sleep -Seconds 60
