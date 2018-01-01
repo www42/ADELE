@@ -1,7 +1,7 @@
 ﻿function New-AdeleDomainController {
   #region Parameters
 [CmdletBinding()]Param(
-[Parameter(Mandatory=$true,  Position=1)][string]$VmComputerName,
+[Parameter(Mandatory=$true,  Position=1)][string]$ComputerName,
 [Parameter(Mandatory=$true,  Position=2)][string]$IpAddress,
 [Parameter(Mandatory=$false, Position=3)][string]$PrefixLength    = $Global:LabIpPrefixLength,
 [Parameter(Mandatory=$false, Position=4)][string]$DefaultGw       = $Global:LabIpDefaultGw,
@@ -14,7 +14,7 @@
   #region Variables
     $ForegroundColor = "DarkCyan"
     $IfAlias   = "Ethernet"
-    $VmName    = ConvertTo-VmName -VmComputerName $VmComputerName -Lab $Lab
+    $VmName    = ConvertTo-VmName -ComputerName $ComputerName -Lab $Lab
     $LocalCred = New-Object System.Management.Automation.PSCredential        "Administrator",(ConvertTo-SecureString $Pw -AsPlainText -Force)
     $DomCred   = New-Object System.Management.Automation.PSCredential "Adatum\Administrator",(ConvertTo-SecureString $Pw -AsPlainText -Force)
     
@@ -36,8 +36,8 @@
   #endregion
   #region Create VM
     Write-Host -ForegroundColor $ForegroundColor "   Create VM                                    " -NoNewline
-    New-LabVmDifferencing -VmComputerName $VmComputerName
-    Start-LabVm -VmComputerName $VmComputerName
+    New-LabVmDifferencing -ComputerName $ComputerName
+    Start-LabVm -ComputerName $ComputerName
     
     # Wait for specialize and oobe
     Start-Sleep -Seconds 180
@@ -131,6 +131,7 @@
     Start-Sleep -Seconds 10
 }
     Write-Host -ForegroundColor $ForegroundColor ".... done."
+  #endregion
   #region Password never expires
     Write-Host -ForegroundColor $ForegroundColor "   Password never expires                       " -NoNewline
     Invoke-Command -VMName $VmName -Credential $DomCred {
@@ -150,7 +151,7 @@
 function New-AdeleMemberServer {
   #region Parameters
     [CmdletBinding()]Param(
-    [Parameter(Mandatory=$true,  Position=1)][string]$VmComputerName,
+    [Parameter(Mandatory=$true,  Position=1)][string]$ComputerName,
     [Parameter(Mandatory=$true,  Position=2)][string]$IpAddress,
     [Parameter(Mandatory=$false, Position=3)][string]$PrefixLength = $Global:LabIpPrefixLength,
     [Parameter(Mandatory=$false, Position=4)][string]$DefaultGw    = $Global:LabIpDefaultGw,
@@ -162,7 +163,7 @@ function New-AdeleMemberServer {
   #region Variables
     $ForegroundColor = "DarkCyan"
     $IfAlias   = "Ethernet"
-    $VmName    = ConvertTo-VmName -VmComputerName $VmComputerName -Lab $Lab
+    $VmName    = ConvertTo-VmName -ComputerName $ComputerName -Lab $Lab
     $LocalCred = New-Object System.Management.Automation.PSCredential        "Administrator",(ConvertTo-SecureString $Pw -AsPlainText -Force)
     $DomCred   = New-Object System.Management.Automation.PSCredential "Adatum\Administrator",(ConvertTo-SecureString $Pw -AsPlainText -Force)
     Write-Host -ForegroundColor $ForegroundColor "   Variables                                    " -NoNewline
@@ -170,8 +171,8 @@ function New-AdeleMemberServer {
   #endregion
   #region Create VM
     Write-Host -ForegroundColor $ForegroundColor "   Create VM                                    " -NoNewline
-    New-LabVmDifferencing -VmComputerName $VmComputerName 
-    Start-LabVm -VmComputerName $VmComputerName
+    New-LabVmDifferencing -ComputerName $ComputerName 
+    Start-LabVm -ComputerName $ComputerName
     
     # Wait for specialize and oobe to complete
     Start-Sleep -Seconds 180
@@ -201,7 +202,7 @@ function New-AdeleMemberServer {
 function New-AdeleNVHost {
   #region Parameters
   [CmdletBinding()]Param(
-  [Parameter(Mandatory=$true,  Position=1)][string]$VmComputerName,
+  [Parameter(Mandatory=$true,  Position=1)][string]$ComputerName,
   [Parameter(Mandatory=$true,  Position=2)][string]$IpAddress,
   [Parameter(Mandatory=$false, Position=3)][string]$PrefixLength    = $Global:LabIpPrefixLength,
   [Parameter(Mandatory=$false, Position=4)][string]$DefaultGw       = $Global:LabIpDefaultGw,
@@ -212,7 +213,7 @@ function New-AdeleNVHost {
   )
   #endregion
   #region Variables
-    $VmName    = ConvertTo-VmName -VmComputerName $VmComputerName -Lab $Lab
+    $VmName    = ConvertTo-VmName -ComputerName $ComputerName -Lab $Lab
     $DomCred   = New-Object System.Management.Automation.PSCredential "Adatum\Administrator",(ConvertTo-SecureString $Pw -AsPlainText -Force)
     $ForegroundColor = "DarkYellow"
     Write-Host -ForegroundColor $ForegroundColor "Variables                                       " -NoNewline
@@ -220,7 +221,7 @@ function New-AdeleNVHost {
   #endregion
   #region New MemberServer
     Write-Host -ForegroundColor $ForegroundColor "New Member Server                                  "
-    New-AdeleMemberServer -VmComputerName $VmComputerName `
+    New-AdeleMemberServer -ComputerName $ComputerName `
                           -IpAddress $IpAddress `
                           -PrefixLength $PrefixLength `
                           -DefaultGw $DefaultGw `
@@ -230,13 +231,13 @@ function New-AdeleNVHost {
   #endregion
   #region Preparing for Nested Virtualization
     Write-Host -ForegroundColor $ForegroundColor "Preparing for Nested Virtualization             " -NoNewline
-    Stop-LabVm -VmComputerName $VmComputerName
+    Stop-LabVm -ComputerName $ComputerName
     
     Set-VMProcessor -VMName $VmName -ExposeVirtualizationExtensions:$true
     Set-VMMemory -VMName $VmName -DynamicMemoryEnabled:$false -StartupBytes 10GB
     Set-VMNetworkAdapter -VMName $VmName -MacAddressSpoofing On
     
-    Start-LabVm -VmComputerName $VmComputerName
+    Start-LabVm -ComputerName $ComputerName
     Start-Sleep -Seconds 60
     Write-Host -ForegroundColor $ForegroundColor ".... done."
   #endregion
