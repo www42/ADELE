@@ -29,7 +29,7 @@ function prompt {"$Lab> "}
 
 Import-Module -Name "ADELE"
 Import-Module -Name "tjLabs" -WarningAction SilentlyContinue
-Import-Module -Name "tjTools"
+Import-Module -Name "tjTools" -WarningAction SilentlyContinue
 
 Write-Output "Loading Modules ..."
 Get-Module    -Name ADELE,tjLabs,tjTools | ft Name,Version
