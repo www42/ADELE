@@ -1,4 +1,63 @@
-﻿function New-AdeleDomainController {
+﻿function New-AdeleStandaloneServer {
+  #region Parameters
+[CmdletBinding()]Param(
+[Parameter(Mandatory=$true,  Position=1)][string]$ComputerName,
+[Parameter(Mandatory=$true,  Position=2)][string]$IpAddress,
+[Parameter(Mandatory=$false, Position=3)][string]$PrefixLength    = $Global:LabIpPrefixLength,
+[Parameter(Mandatory=$false, Position=4)][string]$DefaultGw       = $Global:LabIpDefaultGw,
+[Parameter(Mandatory=$false, Position=5)][string]$DnsServer       = "8.8.8.8",
+[Parameter(Mandatory=$false, Position=6)][string]$Pw              = $Global:LabPw
+)
+  #endregion
+  #region Variables
+    $ForegroundColor = "DarkCyan"
+    $IfAlias   = "Ethernet"
+    $VmName    = ConvertTo-VmName -ComputerName $ComputerName -Lab $Lab
+    $LocalCred = New-Object System.Management.Automation.PSCredential        "Administrator",(ConvertTo-SecureString $Pw -AsPlainText -Force)
+
+    Write-Host -ForegroundColor $ForegroundColor "   Variables                                    " -NoNewline
+    Write-Host -ForegroundColor $ForegroundColor ".... done."
+  #endregion
+  #region Create VM
+    Write-Host -ForegroundColor $ForegroundColor "   Create VM                                    " -NoNewline
+    New-LabVmDifferencing -ComputerName $ComputerName
+    Start-LabVm -ComputerName $ComputerName
+    
+    # Wait for specialize and oobe
+    Start-Sleep -Seconds 180
+    
+    Write-Host -ForegroundColor $ForegroundColor ".... done."
+  #endregion
+  #region Configure static IP address
+    Write-Host -ForegroundColor $ForegroundColor "   Configure static IP address                  " -NoNewline
+    Invoke-Command -VMName $VmName -Credential $LocalCred {
+    New-NetIPAddress -InterfaceAlias $Using:IfAlias -IPAddress $Using:IpAddress -PrefixLength $Using:PrefixLength -DefaultGateway $Using:DefaultGw | Out-Null
+    Set-DnsClientServerAddress -InterfaceAlias $Using:IfAlias -ServerAddresses $using:DnsServer
+    }
+    Write-Host -ForegroundColor $ForegroundColor ".... done."
+  #endregion
+  #region Configure password never expires
+    Write-Host -ForegroundColor $ForegroundColor "   Configure password never expires             " -NoNewline
+    Invoke-Command -VMName $VmName -Credential $LocalCred {
+    Set-LocalUser -Name Administrator -PasswordNeverExpires:$true
+    }
+    Write-Host -ForegroundColor $ForegroundColor ".... done."
+  #endregion
+  #region Configure IE
+    Write-Host -ForegroundColor $ForegroundColor "   Configure IE                                 " -NoNewline
+    $HomeURL = "https://google.de"
+    Set-ItemProperty -Path 'HKCU:\Software\Microsoft\Internet Explorer\main' -Name “Start Page” -Value $HomeURL
+    Write-Host -ForegroundColor $ForegroundColor ".... done."
+  #endregion
+  #region Rename Computer
+    Write-Host -ForegroundColor $ForegroundColor "   Rename Computer                              " -NoNewline
+    Invoke-Command -VMName $VmName -Credential $LocalCred {
+    Rename-Computer -NewName $using:ComputerName -Restart
+    }
+    Write-Host -ForegroundColor $ForegroundColor ".... done."
+  #endregion
+}
+function New-AdeleDomainController {
   #region Parameters
 [CmdletBinding()]Param(
 [Parameter(Mandatory=$true,  Position=1)][string]$ComputerName,
