@@ -75,20 +75,25 @@ function New-AdeleDomainController {
     $IfAlias   = "Ethernet"
     $VmName    = ConvertTo-VmName -ComputerName $ComputerName -Lab $Lab
     $LocalCred = New-Object System.Management.Automation.PSCredential        "Administrator",(ConvertTo-SecureString $Pw -AsPlainText -Force)
-    $DomCred   = New-Object System.Management.Automation.PSCredential "Adatum\Administrator",(ConvertTo-SecureString $Pw -AsPlainText -Force)
+    $DomCred   = New-Object System.Management.Automation.PSCredential "SSITraining\Administrator",(ConvertTo-SecureString $Pw -AsPlainText -Force)
     
     # DNS stuff
-    $NetworkId     = '10.80.0.0/16'
-    $ZoneName      = "80.10.in-addr.arpa"
-    $Name          = "10.0"
-    $PtrDomainName = "DC1.Adatum.com."
+#    $NetworkId     = '10.80.0.0/16'
+#    $ZoneName      = "80.10.in-addr.arpa"
+#    $Name          = "10.0"
+#    $PtrDomainName = "DC1.Adatum.com."
+    $NetworkId     = '10.47.11.0/24'
+    $ZoneName      = "11.47.10.in-addr.arpa"
+    $Name          = "10"
+    $PtrDomainName = "DC1.ssi-training.com."
+
     
     # DHCP stuff
-    $DhcpStartRange = "10.80.99.1"
-    $DhcpEndRange   = "10.80.99.199"
-    $DhcpSubnetMask = "255.255.0.0"
-    $DhcpDnsServer  = "10.80.0.10"
-    $DhcpRouter     = "10.80.0.1"
+    $DhcpStartRange = "10.47.11.101"
+    $DhcpEndRange   = "10.47.11.199"
+    $DhcpSubnetMask = "255.255.255.0"
+    $DhcpDnsServer  = "10.47.11.10"
+    $DhcpRouter     = "10.47.11.1"
     
     Write-Host -ForegroundColor $ForegroundColor "   Variables                                    " -NoNewline
     Write-Host -ForegroundColor $ForegroundColor ".... done."
@@ -101,6 +106,13 @@ function New-AdeleDomainController {
     # Wait for specialize and oobe
     Start-Sleep -Seconds 180
     
+    Write-Host -ForegroundColor $ForegroundColor ".... done."
+  #endregion
+  #region Rename Computer
+    Write-Host -ForegroundColor $ForegroundColor "   Rename Computer                              " -NoNewline
+    Invoke-Command -VMName $VmName -Credential $LocalCred {
+    Rename-Computer -NewName $using:ComputerName -Restart -Force
+    }
     Write-Host -ForegroundColor $ForegroundColor ".... done."
   #endregion
   #region Configure static IP address
