@@ -1,4 +1,4 @@
-﻿function New-AdeleStandaloneServer {
+﻿ function New-AdeleStandaloneServer {
   #region Parameters
 [CmdletBinding()]Param(
 [Parameter(Mandatory=$true,  Position=1)][string]$ComputerName,
