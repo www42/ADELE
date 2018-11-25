@@ -75,7 +75,7 @@ function New-AdeleDomainController {
     $IfAlias   = "Ethernet"
     $VmName    = ConvertTo-VmName -ComputerName $ComputerName -Lab $Lab
     $LocalCred = New-Object System.Management.Automation.PSCredential        "Administrator",(ConvertTo-SecureString $Pw -AsPlainText -Force)
-    $DomCred   = New-Object System.Management.Automation.PSCredential "SSITraining\Administrator",(ConvertTo-SecureString $Pw -AsPlainText -Force)
+    $DomCred   = New-Object System.Management.Automation.PSCredential "LEICA-TRAINING\Administrator",(ConvertTo-SecureString $Pw -AsPlainText -Force)
     
     # DNS stuff
 #    $NetworkId     = '10.80.0.0/16'
@@ -85,7 +85,7 @@ function New-AdeleDomainController {
     $NetworkId     = '10.47.11.0/24'
     $ZoneName      = "11.47.10.in-addr.arpa"
     $Name          = "10"
-    $PtrDomainName = "DC1.ssi-training.com."
+    $PtrDomainName = "DC1.leica-training.com."
 
     
     # DHCP stuff
